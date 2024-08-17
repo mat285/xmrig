@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xmrig
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: config
+  namespace: xmrig
+data:
+  config.json: {{ .ConfigData }}
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: xmrig
+  namespace: xmrig
+secrets:
+  - name: config
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xmrig
+  namespace: xmrig
+  labels:
+    app: xmrig
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: xmrig
+      app-instance: xmrig
+  template:
+    metadata:
+      labels:
+        app: xmrig
+        app-instance: xmrig
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      volumes: 
+      - name: config
+        secret:
+          secretName: config
+      serviceAccountName: xmrig
+      tolerations:
+      - operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+      - name: xmrig
+        image: {{ .Image }}
+        args:
+        - --config 
+        - /var/config/config.json
+        
+        volumeMounts:
+        - name: config
+          readOnly: true
+          mountPath: /var/config
+
+
+---

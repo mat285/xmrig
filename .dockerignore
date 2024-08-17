@@ -1,0 +1,9 @@
+LICENSE
+config.json
+README.md
+_manifests/*
+.github/*
+bin/*
+doc/*
+build/
+build/*
